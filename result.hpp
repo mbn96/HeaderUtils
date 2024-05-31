@@ -1,13 +1,10 @@
 #pragma once
 
 #include <optional>
-// #include <stdexcept>
 #include <utility>
 #include <variant>
 
 namespace ReturnTypes {
-
-// enum class ResultType { Success, Error };
 
 template <typename T> struct Ok {
   T value;
@@ -39,78 +36,26 @@ template <typename E> struct Err {
 
 template <typename T, typename E> class Result {
 private:
-  // ResultType type;
-  // union {
-  //   Ok<T> value;
-  //   Err<E> err;
-  // };
-
   std::variant<Ok<T>, Err<E>> m_val;
 
 public:
-  // Result(Ok<T>&& v) : type(ResultType::Success),
-  // value(std::forward<decltype(v)>(v)) {} Result(Err<E>&& e) :
-  // type(ResultType::Error), err(std::forward<decltype(e)>(e)) {}
-
   Result(Ok<T> &&v) : m_val(std::forward<Ok<T>>(v)) {}
   Result(Err<E> &&e) : m_val(std::forward<Err<E>>(e)) {}
 
-  // ~Result() {
-  //   if (type == ResultType::Success) {
-  //     value.~Ok();
-  //   } else {
-  //     err.~Err();
-  //   }
-  // }
-
   [[nodiscard]] constexpr auto is_ok() const noexcept -> bool {
-    // return type == ResultType::Success;
     return std::holds_alternative<Ok<T>>(m_val);
   }
   [[nodiscard]] constexpr auto is_error() const noexcept -> bool {
-    // return type == ResultType::Error;
     return std::holds_alternative<Err<E>>(m_val);
   }
 
-  auto get() -> T & {
-    // if (type == ResultType::Success) {
-    //   return value.value;
-    // } else {
-    //   throw std::runtime_error("Result is an error");
-    // }
+  auto get() -> T & { return std::get<Ok<T>>(m_val).value; }
 
-    return std::get<Ok<T>>(m_val).value;
-  }
+  auto get() const -> const T & { return std::get<Ok<T>>(m_val).value; }
 
-  auto get() const -> const T & {
-    // if (type == ResultType::Success) {
-    //   return value.value;
-    // } else {
-    //   throw std::runtime_error("Result is an error");
-    // }
+  auto get_error() -> E & { return std::get<Err<E>>(m_val).value; }
 
-    return std::get<Ok<T>>(m_val).value;
-  }
-
-  auto get_error() -> E & {
-    // if (type == ResultType::Error) {
-    //   return err.value;
-    // } else {
-    //   throw std::runtime_error("Result is not an error");
-    // }
-
-    return std::get<Err<E>>(m_val).value;
-  }
-
-  auto get_error() const -> const E & {
-    //   if (type == ResultType::Error) {
-    //     return err.value;
-    //   } else {
-    //     throw std::runtime_error("Result is not an error");
-    //   }
-
-    return std::get<Err<E>>(m_val).value;
-  }
+  auto get_error() const -> const E & { return std::get<Err<E>>(m_val).value; }
 };
 
 // aliasing std::optional
